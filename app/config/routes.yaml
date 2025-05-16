@@ -1,0 +1,57 @@
+# controllers:
+#     resource:
+#         path: ../src/Controller/
+#         namespace: App\Controller
+#     type: attribute
+
+login:
+    path: login
+    controller: App\Modules\Users\Controller\AuthController::login
+    methods: POST
+
+api_login_check:
+    path: /api/login
+    controller: App\MainController::login
+
+user_list:
+    path: /api/users/list
+    controller: App\Modules\Users\Controller\DefaultController::list
+    methods: GET
+    # Describe the required permissions on a route level definition.
+    # The actual permission check is happening in
+    # app\src\Listeners\RoutePermissionAccessListener.php
+    options: { permission: 'user' }
+
+user_details:
+    path: /api/user/{id}
+    controller: App\Modules\Users\Controller\DefaultController::view
+    methods: GET
+    options: { permission: 'user-modify' }
+    requirements:
+        id: '\d+'
+
+user_permissions:
+    path: /api/user/permissions
+    controller: App\Modules\Users\Controller\DefaultController::permissions
+    methods: GET
+
+role_list:
+    path: /api/users/roles
+    controller: App\Modules\Users\Controller\RoleController::list
+    methods: GET
+
+role_permissions:
+    path: /api/users/role/{id}/permissions
+    controller: App\Modules\Users\Controller\RoleController::getPermissions
+    methods: GET
+    requirements:
+        id: '\d+'
+
+role:
+    path: /api/users/role/{id}
+    controller: App\Modules\Users\Controller\RoleController::role
+    methods: GET
+    requirements:
+        id: '\d+'
+
+

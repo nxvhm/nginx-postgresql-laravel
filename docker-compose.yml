@@ -1,0 +1,31 @@
+services:
+  nginx-php:
+    build:
+        context: ./nginx-php
+        dockerfile: Dockerfile
+    ports:
+      - 5500:80
+      - 5543:443
+    volumes:
+      - ./app:/var/www/html
+      - ./cert:/etc/nginx/ssl
+    entrypoint: ['/start.sh']
+  mariadb:
+    image: mariadb:11.6.2
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+    volumes:
+      - ./mariadb/:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 8070:80
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=mariadb
+networks:
+  symfony-dashboard: {}
