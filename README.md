@@ -29,3 +29,10 @@ docker-compose cp nginx-php/app.env.example nginx-php:/var/www/html/.env
 docker-compose exec -i nginx-php bash -c "php artisan key:generate"
 docker-compose exec -i nginx-php bash -c "php artisan migrate"
 ```
+
+### Refresh Self Signed SSL
+
+To regenerate the certificates run:
+```sh
+openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout cert/mycert.key -out cert/mycert.crt
+```
