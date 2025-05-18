@@ -1,73 +1,72 @@
-FROM php:8.2.7-fpm-alpine3.18
+FROM php:8.3-fpm-alpine3.20
 
 LABEL maintainer="Ric Harvey <ric@squarecows.com>"
+
+ARG APP_NAME
+ARG POSTGRES_PASSWORD
+ARG POSTGRES_USER
 
 ENV php_conf /usr/local/etc/php-fpm.conf
 ENV fpm_conf /usr/local/etc/php-fpm.d/www.conf
 ENV php_vars /usr/local/etc/php/conf.d/docker-vars.ini
 
-# resolves #166
-RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
-
 RUN apk update && apk upgrade &&\
-    apk add --no-cache \
-    bash \
-    openssh-client \
-    wget \
-    supervisor \
-    curl \
-    libcurl \
-    libpq \
-    dialog \
-    autoconf \
-    make \
-    libzip-dev \
-    bzip2-dev \
-    icu-dev \
-    tzdata \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    libxslt-dev \
-    gcc
+	apk add --no-cache \
+	bash \
+	openssh-client \
+	wget \
+	supervisor \
+	curl \
+	nginx \
+	libcurl \
+	libpq \
+	dialog \
+	autoconf \
+	make \
+	libzip-dev \
+	bzip2-dev \
+	icu-dev \
+	tzdata \
+	libpng-dev \
+	libjpeg-turbo-dev \
+	freetype-dev \
+	libxslt-dev \
+	gcc \
+	g++
 
 RUN apk add --no-cache --virtual .sys-deps \
-    wget \
-    linux-headers \
-    libmcrypt-dev \
-    sqlite-dev \
-    imap-dev \
-    postgresql-dev \
-    libjpeg-turbo-dev \
-    libwebp-dev \
-    zlib-dev \
-    libxpm-dev \
-    libpng \
-    libpng-dev && \
-  # Install PHP modules
-    docker-php-ext-configure gd \
-      --enable-gd \
-      --with-freetype \
-      --with-jpeg && \
-    docker-php-ext-install gd && \
-    docker-php-ext-install pdo_mysql mysqli pdo_sqlite pgsql pdo_pgsql exif intl xsl soap zip && \
-    pecl install -o -f xdebug && \
-    pecl install -o -f redis && \
-    echo "extension=redis.so" > /usr/local/etc/php/conf.d/redis.ini && \
-    echo "zend_extension=xdebug" > /usr/local/etc/php/conf.d/xdebug.ini && \
-    docker-php-source delete && \
-    mkdir -p /var/www/app && \
-  # Install composer and certbot
-    mkdir -p /var/log/supervisor && \
-    php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
-    php composer-setup.php --quiet --install-dir=/usr/bin --filename=composer && \
-    rm composer-setup.php &&\
-    apk del gcc linux-headers make autoconf && \
-    apk del .sys-deps
+	linux-headers \
+	libmcrypt-dev \
+	sqlite-dev \
+	imap-dev \
+	postgresql-dev \
+	libwebp-dev \
+	zlib-dev \
+	libxpm-dev \
+	libpng \
+	libpng-dev && \
+# Install PHP modules
+	docker-php-ext-configure gd \
+		--enable-gd \
+		--with-freetype \
+		--with-jpeg && \
+	docker-php-ext-install gd && \
+	docker-php-ext-install pdo_mysql mysqli pdo_sqlite pgsql pdo_pgsql exif intl xsl soap zip && \
+	mkdir -p /var/www/app && \
+	mkdir -p /var/log/supervisor && \
+	php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
+	php composer-setup.php --quiet --install-dir=/usr/bin --filename=composer && \
+	rm composer-setup.php
+
+RUN apk add --no-cache --virtual .build-deps php83-dev && \
+  pecl install xdebug && \
+  docker-php-ext-enable xdebug && \
+  apk del .build-deps && \
+	apk del gcc linux-headers make autoconf && \
+	apk del .sys-deps
 
 ADD conf/supervisord.conf /etc/supervisord.conf
 
-# Copy our nginx config
 RUN rm -Rf /etc/nginx/nginx.conf
 ADD conf/nginx.conf /etc/nginx/nginx.conf
 
@@ -101,22 +100,23 @@ RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
         -e "s/listen = 127.0.0.1:9000/listen = \/var\/run\/php-fpm.sock/g" \
         -e "s/^;clear_env = no$/clear_env = no/" \
         ${fpm_conf}
-#    ln -s /etc/php7/php.ini /etc/php7/conf.d/php.ini && \
+
 RUN cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini && \
 	sed -i \
 	    -e "s/;opcache/opcache/g" \
 	    -e "s/;zend_extension=opcache/zend_extension=opcache/g" \
             /usr/local/etc/php/php.ini
 
-# Add Scripts
+RUN composer global require laravel/installer
+ENV PATH="$PATH:/root/.composer/vendor/bin"
+ENV APP_NAME ${APP_NAME}
+ENV POSTGRES_USER ${POSTGRES_USER}
+ENV POSTGRES_PASSWORD ${POSTGRES_PASSWORD}
+
 ADD scripts/start.sh /start.sh
-ADD scripts/pull /usr/bin/pull
-ADD scripts/push /usr/bin/push
 RUN chmod 755 /start.sh
 
-RUN curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.alpine.sh' | bash
-RUN apk add symfony-cli
+WORKDIR "/var/www/html"
+
 
 EXPOSE 443 80
-
-WORKDIR "/var/www/html"
