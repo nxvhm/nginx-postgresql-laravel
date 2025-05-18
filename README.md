@@ -6,9 +6,14 @@ Some of the scripts used in the repository were copied from [Ric Harvey's nginx-
 
 1. Clone the repository on your file system. E.g: `/my/project/dir`
 
-2. Navigate to the directory and run `docker-compose up -d`:
+2. Navigate to that directory and create the source code folder
 ```sh
 cd /my/project/dir
+mkdir src
+```
+
+2. Run:
+```sh
 docker-compose up -d
 ```
 3. Create New Laravel Project
