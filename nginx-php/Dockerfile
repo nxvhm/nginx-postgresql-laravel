@@ -1,7 +1,5 @@
 FROM php:8.3-fpm-alpine3.20
 
-LABEL maintainer="Ric Harvey <ric@squarecows.com>"
-
 ARG APP_NAME
 ARG POSTGRES_PASSWORD
 ARG POSTGRES_USER

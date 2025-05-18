@@ -11,6 +11,7 @@ Some of the scripts used in the repository were copied from [Ric Harvey's nginx-
 cd /my/project/dir
 mkdir src
 ```
+>! When working on existing project just clone the source code inside the src/ folder and then run `docker-compose`
 
 2. Run:
 ```sh
@@ -22,9 +23,9 @@ docker-compose up -d
 cd /my/project/dir
 docker-compose exec -i nginx-php bash -c "composer create-project laravel/laravel ."
 ```
-4. Copy the `.env` file and set the app keys
+4. Copy the `.env` file and set the app keys and run the initial migrations
 ```sh
 docker-compose cp nginx-php/app.env.example nginx-php:/var/www/html/.env
 docker-compose exec -i nginx-php bash -c "php artisan key:generate"
+docker-compose exec -i nginx-php bash -c "php artisan migrate"
 ```
-

@@ -13,7 +13,7 @@ services:
       - 5500:80
       - 5543:443
     volumes:
-      - ./app:/var/www/html
+      - ./src:/var/www/html
       - ./cert:/etc/nginx/ssl
     entrypoint: ['/start.sh']
   postgresql:
