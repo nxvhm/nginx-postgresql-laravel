@@ -17,6 +17,9 @@ mkdir src
 ```sh
 docker-compose up -d
 ```
+
+>! If using on windows make sure the start script located in `nginx-php/scripts/start.sh` have an LF file endings before running the `docker-compose up` command
+
 3. Create New Laravel Project
 
 ```sh
@@ -42,3 +45,4 @@ To regenerate the certificates run:
 ```sh
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout cert/mycert.key -out cert/mycert.crt
 ```
+
